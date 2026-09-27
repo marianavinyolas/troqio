@@ -51,41 +51,6 @@ jobs:
       - name: Compilar main / preload / renderer
         run: pnpm build
 
-      # Diagnostico del entorno ANTES de empaquetar. Se emite como anotacion
-      # porque las anotaciones se leen por API sin token y los logs no.
-      - name: Diagnosticar entorno de empaquetado
-        shell: bash
-        run: |
-          set +e
-          CACHE_DIR="$(cygpath -u "$LOCALAPPDATA")/electron-builder/Cache"
-          {
-            echo "cwd len=${#PWD} $PWD"
-            echo "--- disco ---"
-            df -h | head -5
-            echo "--- electron-builder como lo resuelve pnpm run ---"
-            node -e "console.log(require.resolve('electron-builder/package.json'))" 2>&1 | tail -1
-            echo "--- ruta a la plantilla que hace !include makensis ---"
-            find node_modules/.pnpm -name 'StdUtils.nsh' 2>/dev/null | while read -r f; do
-              echo "len=${#f} $f"
-            done | sort -rn | head -2
-            echo "--- makensis ---"
-            MK=$(find "$CACHE_DIR" -name 'makensis.exe' 2>/dev/null | head -1)
-            if [ -n "$MK" ]; then
-              echo "path len=${#MK}: $MK"
-              echo "contenido del dir Bin:"
-              ls "$(dirname "$MK")" 2>&1 | head -8
-              echo "makensis /VERSION:"
-              "$MK" /VERSION 2>&1 | head -2
-              echo "makensis exit=$?"
-            else
-              echo "makensis.exe NO ENCONTRADO bajo $CACHE_DIR"
-              echo "lo que si hay en el cache:"
-              ls "$CACHE_DIR" 2>&1 | head -8
-            fi
-          } > diag.txt 2>&1
-          cat diag.txt
-          echo "::notice title=diag empaquetado::$(tr '\n' ' ' < diag.txt | cut -c1-1800)"
-
       # better-sqlite3 13 usa prebuilds N-API: el mismo .node sirve para Node y
       # para Electron, asi que NO hace falta recompilar contra el ABI de
       # Electron ni tener MSVC para el modulo nativo.
@@ -107,8 +72,9 @@ jobs:
           # Sin certificado por decision del proyecto.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      # Volcar el log del empaquetado como anotacion, en varios cortes, para
-      # que un corte largo no se pierda por truncado.
+      # Volcar el log del empaquetado como anotacion. Se hace DESPUES del fallo
+      # porque electron-builder descarga NSIS durante el empaquetado: antes de
+      # ese paso el cache no existe y no hay nada que inspeccionar.
       - name: Reportar fallo del empaquetado
         if: steps.package.outcome == 'failure'
         shell: bash
@@ -119,10 +85,35 @@ jobs:
             cat build.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "::error title=tamano::build.log tiene $(wc -l < build.log) lineas"
-          echo "::error title=inicio 1-30::$(sed -n '1,30p' build.log | tr '\n' ' ' | cut -c1-1800)"
-          echo "::error title=final 60::$(tail -n 60 build.log | tr '\n' ' ' | cut -c1-1800)"
-          echo "::error title=errores::$(grep -inE 'error|stack|cannot|fail|abort|denied|access|include' build.log | tail -n 30 | tr '\n' ' ' | cut -c1-1800)"
+
+          # Por que muerio makensis? Si /VERSION funciona, el binario esta bien
+          # y el problema es el script o los argumentos.
+          CACHE_DIR="$(cygpath -u "$LOCALAPPDATA")/electron-builder/Cache"
+          {
+            MK=$(find "$CACHE_DIR" -name 'makensis.exe' 2>/dev/null | head -1)
+            echo "makensis: ${MK:-NO ENCONTRADO}"
+            if [ -n "$MK" ]; then
+              echo "-- dir Bin --"
+              ls "$(dirname "$MK")" 2>&1 | head -10
+              echo "-- subdirectorios del cache --"
+              find "$CACHE_DIR" -maxdepth 3 -type d 2>/dev/null | head -12
+              echo "-- /VERSION --"
+              "$MK" /VERSION 2>&1 | head -3
+              echo "exit=$?"
+            fi
+          } > diag.txt 2>&1
+          cat diag.txt
+          echo "::error title=makensis post-fallo::$(tr '\n' '~' < diag.txt | cut -c1-1700)"
+
+          # El log en trozos chicos y numerados. Las anotaciones largas se
+          # truncan y ya perdimos informacion por eso. El separador '~' es el
+          # fin de linea, asi un bloque de una sola linea sigue siendo legible.
+          total=$(wc -l < build.log)
+          echo "::error title=lineas::build.log tiene $total lineas"
+          for s in 0 13 26 39 52 65 78 91; do
+            e=$((s+12))
+            echo "::error title=log $((s+1))-$e::$(sed -n "$((s+1)),${e}p" build.log | sed 's/[[:space:]]*$//' | tr '\n' '~' | cut -c1-1700)"
+          done
 
       - name: Subir instalador
         uses: actions/upload-artifact@v6
