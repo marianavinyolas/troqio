@@ -55,10 +55,31 @@ jobs:
       # para Electron, asi que NO hace falta recompilar contra el ABI de
       # Electron ni tener MSVC para el modulo nativo.
       - name: Empaquetar instalador
-        run: pnpm exec electron-builder --win --x64
+        id: package
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm exec electron-builder --win --x64 2>&1 | tee build.log
+        continue-on-error: true
         env:
           # Sin certificado por decision del proyecto.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      # Volcar el log del empaquetado como anotacion. Las anotaciones se leen
+      # por API sin token; los logs no. Asi un fallo se puede diagnosticar
+      # sin depender de un login.
+      - name: Reportar fallo del empaquetado
+        if: steps.package.outcome == 'failure'
+        shell: bash
+        run: |
+          {
+            echo '### electron-builder fallo'
+            echo '```'
+            tail -n 200 build.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=filtrado::$(grep -iE 'error|failed|cannot|enoent|not found|unsupported' build.log | tail -n 25 | tr '\n' ' ' | cut -c1-1800)"
+          echo "::error title=final del log::$(tail -n 25 build.log | tr '\n' ' ' | cut -c1-1800)"
 
       - name: Subir instalador
         uses: actions/upload-artifact@v6
