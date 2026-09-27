@@ -1,0 +1,20 @@
+# Forzar LF en el working tree en TODAS las plataformas.
+#
+# ⭐ Motivo: los runners de Windows de GitHub Actions traen git configurado con
+# core.autocrlf=true, asi que actions/checkout converts TODO el repo a CRLF.
+# Biome exige LF, por lo que `pnpm lint` fallaba en cada archivo y el build de
+# Windows se rompia en el paso de lint.
+#
+# `text=auto` deja que git detecte los binarios; `eol=lf` fuerza LF en los
+# de texto sin importar como este configurado el equipo del usuario.
+* text=auto eol=lf
+
+# Binarios: nunca convertir de linea.
+*.db     binary
+*.db-wal binary
+*.db-shm binary
+*.sqlite binary
+*.exe    binary
+*.ico    binary
+*.icns   binary
+*.png    binary
