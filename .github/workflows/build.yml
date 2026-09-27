@@ -1,0 +1,67 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # windows-latest ya trae MSVC y Node preinstalado.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      # electron 44 elimino su postinstall: el binario se descarga de forma
+      # perezosa en el primer require(). Lo hacemos explicito y temprano para
+      # que un fallo de red falle rapido y en un paso con nombre claro.
+      - name: Descargar binario de Electron
+        run: pnpm exec install-electron
+
+      - name: Verificar tipos
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Compilar main / preload / renderer
+        run: pnpm build
+
+      # better-sqlite3 13 usa prebuilds N-API: el mismo .node sirve para Node y
+      # para Electron, asi que NO hace falta recompilar contra el ABI de
+      # Electron ni tener MSVC para el modulo nativo.
+      - name: Empaquetar instalador
+        run: pnpm exec electron-builder --win --x64
+        env:
+          # Sin certificado por decision del proyecto.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Subir instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: troqio-windows-x64
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 30

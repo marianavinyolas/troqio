@@ -1,0 +1,20 @@
+# Configuracion de pnpm.
+#
+# ⭐ pnpm 11 dejo de leer el campo "pnpm" de package.json, y elimino
+# `onlyBuiltDependencies` a favor de `allowBuilds`.
+# Sin allowBuilds, pnpm 11 aborta la instalacion con ERR_PNPM_IGNORED_BUILDS.
+#
+# Migracion: pnpm dlx codemod run pnpm-v10-to-v11
+#
+# Nota: electron y better-sqlite3 ya NO tienen script de instalacion.
+#  - electron 44 quito su postinstall (medida de seguridad); el binario se
+#    descarga de forma perezosa con `pnpm exec install-electron`.
+#  - better-sqlite3 13 usa prebuilds N-API (prebuilds/*.node), no node-gyp.
+allowBuilds:
+  # Unico paquete del arbol con un postinstall real (bundle de Vite).
+  esbuild: true
+  # Listados por_urls de registro aunque hoy no compilan nada: sobre-listar
+  # es inofensivo, omitir uno rompe `pnpm install --frozen-lockfile` en CI.
+  better-sqlite3: true
+  electron: true
+  electron-winstaller: true

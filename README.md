@@ -1,0 +1,65 @@
+# Troqio
+
+Inventario local de troqueles (blísteres de dosis individual) para farmacia.
+Aplicación de escritorio, funciona sin conexión a internet.
+
+## Dónde están los datos
+
+La base de datos SQLite vive **fuera** de la carpeta de la aplicación, en la
+carpeta de datos de usuario:
+
+| Sistema | Ruta |
+| --- | --- |
+| **Windows** | `%APPDATA%\troqio\troqio.db` |
+| macOS | `~/Library/Application Support/troqio/troqio.db` |
+
+En Windows se abre con: `%APPDATA%` en la barra de direcciones del Explorador.
+
+> **Respaldo:** copiá ese archivo a un pendrive. Los respaldos locales en la
+> misma máquina **no** protegen contra una falla de disco.
+
+Desinstalar la aplicación **no** borra la base de datos
+(`deleteAppDataOnUninstall: false` en `electron-builder.yml`).
+
+## Comandos
+
+```bash
+pnpm install          # instalar dependencias
+pnpm dev              # modo desarrollo (ventana + HMR)
+pnpm build            # compilar main / preload / renderer
+pnpm start            # previsualizar la compilación
+pnpm smoke            # verifica la base de datos e imprime JSON, sin ventana
+pnpm test             # tests unitarios
+pnpm typecheck        # TypeScript estricto
+pnpm lint             # Biome
+```
+
+## Arquitectura
+
+```
+src/main/      proceso principal: ÚNICO que toca la base de datos y el disco
+src/preload/   puente contextBridge, sin acceso a Node (sandbox: true)
+src/renderer/  interfaz React, sin SQL y sin acceso al sistema de archivos
+src/shared/    contrato IPC, esquemas Zod y tipos (lo usan main y renderer)
+```
+
+El renderer **nunca** es de confianza: cada comando IPC revalida sus
+argumentos con Zod antes de tocar la base. No existe un `query(sql)` genérico.
+
+## Notas de la pila
+
+- **better-sqlite3 13** usa binarios precompilados N-API: el mismo `.node`
+  sirve para Node y para Electron. No hace falta recompilar contra el ABI de
+  Electron ni tener MSVC en la máquina de compilación.
+- **electron 44** quitó su `postinstall` (medida de seguridad). El binario se
+  descarga de forma perezosa; en CI se baja de forma explícita con
+  `pnpm exec install-electron`.
+- **pnpm 11** ya no lee el campo `pnpm` de `package.json` y eliminó
+  `onlyBuiltDependencies`. La configuración vive en `pnpm-workspace.yaml`
+  usando `allowBuilds`.
+
+## Distribución
+
+Instalador NSIS para Windows x64, sin firmar (se distribuye con una guía de
+instalación). Se compila en GitHub Actions y se descarga como artefacto del
+workflow.

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      ⭐ NO se pone la CSP aqui a proposito.
+      Vite inyecta scripts inline para el HMR en desarrollo, asi que un
+      `script-src 'self'` en esta etiqueta rompe `pnpm dev`. La CSP real la
+      aplica el proceso main por cabecera, solo en la app empaquetada.
+      Ver CSP_PROD en src/main/index.ts
+    -->
+    <title>Troqio</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
