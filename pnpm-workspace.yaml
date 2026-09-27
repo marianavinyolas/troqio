@@ -18,3 +18,16 @@ allowBuilds:
   better-sqlite3: true
   electron: true
   electron-winstaller: true
+
+# Rutas de node_modules cortas en Windows.
+#
+# electron-builder pasa a makensis la ruta de sus plantillas NSIS dentro de
+# node_modules. pnpm construye nombres larguisimos
+# (app-builder-lib@26.15.3_dmg-builder@..._electron-builder-squirrel-windows@...)
+# y en Windows esa ruta puede pasar los 260 caracteres del MAX_PATH, makensis
+# no encuentra el archivo y aborta con ERR_ELECTRON_BUILDER_CANNOT_EXECUTE.
+#
+# En pnpm 11 esto NO se lee de .npmrc: solo auth y registry. Va aqui en
+# camelCase. Ver https://github.com/electron-userland/electron-builder/issues/8175
+virtualStoreDirMaxLength: 80
+peersSuffixMaxLength: 20
