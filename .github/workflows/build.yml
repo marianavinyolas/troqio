@@ -51,23 +51,64 @@ jobs:
       - name: Compilar main / preload / renderer
         run: pnpm build
 
+      # Diagnostico del entorno ANTES de empaquetar. Se emite como anotacion
+      # porque las anotaciones se leen por API sin token y los logs no.
+      - name: Diagnosticar entorno de empaquetado
+        shell: bash
+        run: |
+          set +e
+          CACHE_DIR="$(cygpath -u "$LOCALAPPDATA")/electron-builder/Cache"
+          {
+            echo "cwd len=${#PWD} $PWD"
+            echo "--- disco ---"
+            df -h | head -5
+            echo "--- electron-builder como lo resuelve pnpm run ---"
+            node -e "console.log(require.resolve('electron-builder/package.json'))" 2>&1 | tail -1
+            echo "--- ruta a la plantilla que hace !include makensis ---"
+            find node_modules/.pnpm -name 'StdUtils.nsh' 2>/dev/null | while read -r f; do
+              echo "len=${#f} $f"
+            done | sort -rn | head -2
+            echo "--- makensis ---"
+            MK=$(find "$CACHE_DIR" -name 'makensis.exe' 2>/dev/null | head -1)
+            if [ -n "$MK" ]; then
+              echo "path len=${#MK}: $MK"
+              echo "contenido del dir Bin:"
+              ls "$(dirname "$MK")" 2>&1 | head -8
+              echo "makensis /VERSION:"
+              "$MK" /VERSION 2>&1 | head -2
+              echo "makensis exit=$?"
+            else
+              echo "makensis.exe NO ENCONTRADO bajo $CACHE_DIR"
+              echo "lo que si hay en el cache:"
+              ls "$CACHE_DIR" 2>&1 | head -8
+            fi
+          } > diag.txt 2>&1
+          cat diag.txt
+          echo "::notice title=diag empaquetado::$(tr '\n' ' ' < diag.txt | cut -c1-1800)"
+
       # better-sqlite3 13 usa prebuilds N-API: el mismo .node sirve para Node y
       # para Electron, asi que NO hace falta recompilar contra el ABI de
       # Electron ni tener MSVC para el modulo nativo.
+      #
+      # OJO: invocar con `pnpm run`, no con `pnpm exec`. `pnpm exec` resuelve
+      # electron-builder por una cadena de directorios mas larga, y sumada a
+      # la ruta de las plantillas NSIS dentro de node_modules revienta el
+      # MAX_PATH de 260 de Windows: makensis no encuentra el archivo y aborta
+      # con ERR_ELECTRON_BUILDER_CANNOT_EXECUTE.
+      # Ref: electron-userland/electron-builder#8613
       - name: Empaquetar instalador
         id: package
         shell: bash
         run: |
           set -o pipefail
-          pnpm exec electron-builder --win --x64 2>&1 | tee build.log
+          pnpm run package:win 2>&1 | tee build.log
         continue-on-error: true
         env:
           # Sin certificado por decision del proyecto.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      # Volcar el log del empaquetado como anotacion. Las anotaciones se leen
-      # por API sin token; los logs no. Asi un fallo se puede diagnosticar
-      # sin depender de un login.
+      # Volcar el log del empaquetado como anotacion, en varios cortes, para
+      # que un corte largo no se pierda por truncado.
       - name: Reportar fallo del empaquetado
         if: steps.package.outcome == 'failure'
         shell: bash
@@ -75,11 +116,13 @@ jobs:
           {
             echo '### electron-builder fallo'
             echo '```'
-            tail -n 200 build.log
+            cat build.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "::error title=filtrado::$(grep -iE 'error|failed|cannot|enoent|not found|unsupported' build.log | tail -n 25 | tr '\n' ' ' | cut -c1-1800)"
-          echo "::error title=final del log::$(tail -n 25 build.log | tr '\n' ' ' | cut -c1-1800)"
+          echo "::error title=tamano::build.log tiene $(wc -l < build.log) lineas"
+          echo "::error title=inicio 1-30::$(sed -n '1,30p' build.log | tr '\n' ' ' | cut -c1-1800)"
+          echo "::error title=final 60::$(tail -n 60 build.log | tr '\n' ' ' | cut -c1-1800)"
+          echo "::error title=errores::$(grep -inE 'error|stack|cannot|fail|abort|denied|access|include' build.log | tail -n 30 | tr '\n' ' ' | cut -c1-1800)"
 
       - name: Subir instalador
         uses: actions/upload-artifact@v6

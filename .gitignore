@@ -23,6 +23,7 @@ release/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+diag.txt
 
 # os
 .DS_Store
