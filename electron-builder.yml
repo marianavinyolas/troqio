@@ -54,7 +54,20 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   perMachine: false # ⭐ instalacion por usuario: NO requiere permisos de administrador
-  language: es
+  # ⭐ OJO: `language` NO es el idioma de la interfaz. Electron-builder lo usa
+  # como LANG de recursos de Windows para VIAddVersionKey, y espera un LANGID
+  # numerico, no un codigo ISO. Con `language: es` makensis aborta con
+  #   VIAddVersionKey: "/LANG=es" is not a valid language code!
+  # 2058 = 0x080A = espanol con ordenacion latina (es-AR).
+  language: 2058
+  # El idioma de la interfaz del asistente va en installerLanguages, que es
+  # otra opcion. es_ES se mapea a la MUI "SpanishInternational".
+  #
+  # OJO: NO poner multiLanguageInstaller: false. Con esa flag el
+  # LangConfigurator de electron-builder hace langs = ["en_US"] e ignora
+  # installerLanguages por completo: el asistente salia en ingles.
+  installerLanguages:
+    - es_ES
   # ⭐ Nunca borrar la base de datos al desinstalar.
   deleteAppDataOnUninstall: false
   createDesktopShortcut: true

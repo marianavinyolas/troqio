@@ -76,11 +76,15 @@ jobs:
       # porque electron-builder descarga NSIS durante el empaquetado: antes de
       # ese paso el cache no existe y no hay nada que inspeccionar.
       #
+      # Esto existe porque los logs de Actions exigen token (403) incluso en un
+      # repo publico, mientras que las anotaciones se leen por API sin token.
+      # Asi un fallo de empaquetado se puede diagnosticar sin depender de un
+      # login. Fue exactamente asi como se encontro el bug de nsis.language.
+      #
       # OJO con `set +e`: GitHub corre bash con -e, y cualquier comando con
       # codigo distinto de 0 aborta el paso. Con `head` al final de una
-      # tuberia, el escritor toma SIGPIPE, pipefail devuelve 141 y el paso
-      # muere ANTES de emitir nada. Por eso el log se emite primero y la sonda
-      # de makensis va al final.
+      # tuberia el escritor toma SIGPIPE, pipefail devuelve 141 y el paso
+      # muere ANTES de emitir nada. Por eso ninguna sonda lleva `head`.
       - name: Reportar fallo del empaquetado
         if: steps.package.outcome == 'failure'
         shell: bash
@@ -88,43 +92,21 @@ jobs:
           set +e
           set +o pipefail
 
-          # El log en trozos chicos y numerados. Las anotaciones largas se
-          # truncan y ya perdimos informacion por eso. El separador '~' es el
-          # fin de linea, asi un bloque de una sola linea sigue siendo legible.
-          #
-          # GitHub limita cuantas anotaciones acepta por paso y por nivel, asi
-          # que la primera mitad va como ::error:: y la segunda como ::notice::
-          # para no comerse el techo.
-          total=$(wc -l < build.log)
-          echo "::error title=lineas::build.log tiene $total lineas"
-          for s in 0 13 26 39 52 65 78 91; do
-            e=$((s+12))
-            body=$(sed -n "$((s+1)),${e}p" build.log | sed 's/[[:space:]]*$//' | tr '\n' '~' | cut -c1-1700)
-            if [ "$s" -lt 52 ]; then
-              echo "::error title=log $((s+1))-$e::$body"
-            else
-              echo "::notice title=log $((s+1))-$e::$body"
-            fi
-          done
+          # El error de verdad suele estar en la seccion "Error output:".
+          echo "::error title=error de makensis::$(sed -n '/Error output:/,/failedTask=/p' build.log | sed 's/[[:space:]]*$//' | tr '\n' '~' | cut -c1-1700)"
+          echo "::error title=final del log::$(tail -n 20 build.log | sed 's/[[:space:]]*$//' | tr '\n' '~' | cut -c1-1700)"
 
-          # Por que muerio makensis? Si /VERSION funciona, el binario esta bien
-          # y el problema es el script o los argumentos. Sin head: la tuberia se
-          # traga completa y no hay SIGPIPE.
           CACHE_DIR="$(cygpath -u "$LOCALAPPDATA")/electron-builder/Cache"
           MK=$(find "$CACHE_DIR" -name 'makensis.exe' 2>/dev/null | head -1)
           {
             echo "makensis: ${MK:-NO ENCONTRADO}"
             if [ -n "$MK" ]; then
-              echo "-- dir Bin --"
-              ls "$(dirname "$MK")" 2>&1
-              echo "-- subdirectorios del cache --"
-              find "$CACHE_DIR" -maxdepth 3 -type d 2>/dev/null
               echo "-- /VERSION --"
               "$MK" /VERSION 2>&1
               echo "exit=$?"
             fi
           } > diag.txt 2>&1
-          echo "::notice title=makensis post-fallo::$(tr '\n' '~' < diag.txt | cut -c1-1700)"
+          echo "::notice title=makensis::$(tr '\n' '~' < diag.txt | cut -c1-1700)"
 
           {
             echo '### electron-builder fallo'
