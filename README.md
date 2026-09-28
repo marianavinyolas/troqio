@@ -44,6 +44,8 @@ pnpm test               # tests unitarios
 pnpm typecheck          # TypeScript estricto
 pnpm lint               # Biome
 pnpm verificar:clases   # clases de Tailwind ausentes del CSS compilado
+pnpm db:generate        # generar una migración a partir de schema.ts
+pnpm db:check           # verificar que las migraciones no se contradicen
 ```
 
 ## Arquitectura
@@ -53,6 +55,7 @@ src/main/      proceso principal: ÚNICO que toca la base de datos y el disco
 src/preload/   puente contextBridge, sin acceso a Node (sandbox: true)
 src/renderer/  interfaz React, sin SQL y sin acceso al sistema de archivos
 src/shared/    contrato IPC, esquemas Zod y tipos (lo usan main y renderer)
+drizzle/       migraciones SQL generadas, se empaquetan dentro del asar
 ```
 
 El renderer **nunca** es de confianza: cada comando IPC revalida sus
@@ -89,6 +92,60 @@ verificarlos con `tests/rutas.test.ts` en entorno node, sin jsdom.
 - **pnpm 11** ya no lee el campo `pnpm` de `package.json` y eliminó
   `onlyBuiltDependencies`. La configuración vive en `pnpm-workspace.yaml`
   usando `allowBuilds`.
+- **SQLite tiene afinidades, no tipos.** Una columna `INTEGER` acepta el texto
+  `'muchos'` y lo guarda tal cual, sin convertirlo. Peor: en las comparaciones
+  SQLite ordena por tipo (NULL < INTEGER/REAL < TEXT < BLOB), así que
+  `'muchos' > 0` es **verdadero** y un `CHECK (cantidad > 0)` no frena nada.
+  Por eso todo CHECK de cantidad compara también `typeof(cantidad) =
+  'integer'`. Sin eso, un texto colado en `stock.cantidad` pasa el filtro de
+  "nunca stock negativo".
+
+## La base de datos
+
+Tres tablas, en `src/main/db/schema.ts`. Las migraciones se generan con
+`pnpm db:generate` y las aplica `src/main/db/migrar.ts` al abrir la base.
+
+```
+producto           el medicamento: nombre, principio activo, troquel, código
+stock              cantidad actual de cajas, una fila por producto
+movimiento_stock   libro de movimientos, solo se agrega, nunca se edita
+```
+
+Reglas que están en el esquema y no conviene volver a discutir:
+
+- `codigo_barras` es **texto**, nunca número. Hay códigos con ceros iniciales
+  (`0070942507240`) que como número dejan de existir.
+- Ni `codigo_barras` ni `numero_troquel` son `UNIQUE`, y `numero_troquel`
+  admite `NULL`. Un error de tipeo al cargar datos se reporta como advertencia,
+  nunca bloquea el alta.
+- `stock.cantidad` no puede ser negativa: hay un `CHECK`, y encima el descuento
+  usa `WHERE cantidad >= ?` para que un pedido imposible no escriba nada.
+- Un `ajuste` guarda la diferencia **con signo** (contar 3 donde había 8 es un
+  `-5`), por eso es el único tipo que acepta un número negativo. `ingreso` y
+  `egreso` siempre positivos.
+- La baja de un producto es lógica (`activo`), porque el historial lo referencia
+  y las claves foráneas son `ON DELETE RESTRICT`.
+
+Sobre `$defaultFn`: en Drizzle completa el valor solo en el `insert`. En un
+`update` sin ese campo en el `set` **no** lo toca, así que `actualizadoEn` hay
+que pasarlo explícitamente. Está verificado en `tests/migraciones.test.ts`.
+
+### Las migraciones viajan dentro del asar
+
+`migrar.ts` resuelve la carpeta con `join(__dirname, '..', '..', 'drizzle')`.
+Esa misma ruta sirve en los dos casos:
+
+```
+desarrollo:   <repo>/out/main/index.js  ->  <repo>/drizzle
+empaquetada:  app.asar/out/main/index.js -> app.asar/drizzle
+```
+
+Electron deja leer el asar como si fuera una carpeta común, así que no hace
+falta desenpaquetar nada, y `electron-builder.yml` incluye `drizzle/**` en
+`files`. Ojo: si ese patrón se pierde del `files`, la app instalada no
+encuentra el esquema y falla en el primer query con `no such table`. Por eso
+`--smoke-test` ahora informa `tablas` y `migraciones`: es la única forma de
+distinguir "arrancó" de "arrancó con la base migrada".
 
 ## Distribución
 

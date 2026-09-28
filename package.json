@@ -16,7 +16,9 @@
     "verificar:clases": "node tools/verificar-clases.mjs",
     "format": "biome format --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

@@ -9,6 +9,12 @@ directories:
 files:
   - out/**/*
   - package.json
+  # ⭐ Migraciones de drizzle. Tiene que ir DENTRO del asar: la ruta que usa la
+  # app (join(__dirname, '..', '..', 'drizzle')) es la misma en desarrollo y
+  # empaquetada, y Electron lee el asar como una carpeta comun.
+  # Ver src/main/db/migrar.ts. Sin esto, la app instalada no encuentra el
+  # esquema y falla en el primer query con "no such table".
+  - drizzle/**/*
   - '!**/*.map'
 
 # ⭐ CRITICO: el binario nativo de better-sqlite3 (.node) debe quedar

@@ -44,11 +44,15 @@ function applyContentSecurityPolicy(): void {
 }
 
 /**
- * `--smoke-test`: abre la base, ejecuta una consulta real, imprime el
- * resultado como JSON y termina. Sin ventana.
+ * `--smoke-test`: abre la base, aplica las migraciones, ejecuta una consulta
+ * real, imprime el resultado como JSON y termina. Sin ventana.
  *
- * Existe para que CI (o un humano) puedan verificar que el modulo nativo
- * funciona en la maquina destino sin depender de la interfaz.
+ * Existe para que CI (o un humano) puedan verificar que el modulo nativo y el
+ * esquema funcionan en la maquina destino sin depender de la interfaz.
+ *
+ * `tablas` y `migraciones` estan a proposito: son lo que distingue "arranco" de
+ * "arranco con la base migrada". Si `drizzle/**` se pierde del empaquetado, la
+ * app revienta con "no such table" y estos dos numeros son 0.
  */
 function runSmokeTest(): void {
   const row = getSqlite().prepare('select sqlite_version() as version').get() as {
@@ -58,11 +62,30 @@ function runSmokeTest(): void {
   const stats = getDbFileStats()
   const journalMode = getSqlite().pragma('journal_mode', { simple: true })
 
+  const contar = (sql: string): number => (getSqlite().prepare(sql).get() as { n: number }).n
+
+  const tablas = contar(
+    `SELECT count(*) AS n FROM sqlite_master
+     WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name <> '__drizzle_migrations'`
+  )
+  const migraciones = contar('SELECT count(*) AS n FROM __drizzle_migrations')
+
+  if (tablas !== 3 || migraciones < 1) {
+    process.stdout.write(
+      `${JSON.stringify({ ok: false, tablas, migraciones, dbPath: getDbPath() })}\n`
+    )
+    closeDb()
+    app.exit(1)
+    return
+  }
+
   process.stdout.write(
     `${JSON.stringify({
       ok: true,
       sqliteVersion: row.version,
       journalMode,
+      tablas,
+      migraciones,
       dbPath: getDbPath(),
       dbExists: stats.exists,
       electron: process.versions.electron

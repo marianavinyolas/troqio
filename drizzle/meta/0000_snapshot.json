@@ -1,0 +1,227 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "b901a68f-a796-413b-986a-4e42552d0c8a",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "movimiento_stock": {
+      "name": "movimiento_stock",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "producto_id": {
+          "name": "producto_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cantidad": {
+          "name": "cantidad",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "motivo": {
+          "name": "motivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ix_movimiento_stock_producto": {
+          "name": "ix_movimiento_stock_producto",
+          "columns": ["producto_id", "id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "movimiento_stock_producto_id_producto_id_fk": {
+          "name": "movimiento_stock_producto_id_producto_id_fk",
+          "tableFrom": "movimiento_stock",
+          "tableTo": "producto",
+          "columnsFrom": ["producto_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "movimiento_tipo_valido": {
+          "name": "movimiento_tipo_valido",
+          "value": "\"movimiento_stock\".\"tipo\" in ('ingreso', 'egreso', 'ajuste')"
+        },
+        "movimiento_cantidad_coherente": {
+          "name": "movimiento_cantidad_coherente",
+          "value": "typeof(\"movimiento_stock\".\"cantidad\") = 'integer' and ((\"movimiento_stock\".\"tipo\" in ('ingreso', 'egreso') and \"movimiento_stock\".\"cantidad\" > 0) or (\"movimiento_stock\".\"tipo\" = 'ajuste' and \"movimiento_stock\".\"cantidad\" <> 0))"
+        }
+      }
+    },
+    "producto": {
+      "name": "producto",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "principio_activo": {
+          "name": "principio_activo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "numero_troquel": {
+          "name": "numero_troquel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "codigo_barras": {
+          "name": "codigo_barras",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "activo": {
+          "name": "activo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ix_producto_codigo_barras": {
+          "name": "ix_producto_codigo_barras",
+          "columns": ["codigo_barras"],
+          "isUnique": false
+        },
+        "ix_producto_numero_troquel": {
+          "name": "ix_producto_numero_troquel",
+          "columns": ["numero_troquel"],
+          "isUnique": false
+        },
+        "ix_producto_nombre": {
+          "name": "ix_producto_nombre",
+          "columns": ["nombre"],
+          "isUnique": false
+        },
+        "ix_producto_principio_activo": {
+          "name": "ix_producto_principio_activo",
+          "columns": ["principio_activo"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "stock": {
+      "name": "stock",
+      "columns": {
+        "producto_id": {
+          "name": "producto_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cantidad": {
+          "name": "cantidad",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "stock_producto_id_producto_id_fk": {
+          "name": "stock_producto_id_producto_id_fk",
+          "tableFrom": "stock",
+          "tableTo": "producto",
+          "columnsFrom": ["producto_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "stock_cantidad_entera": {
+          "name": "stock_cantidad_entera",
+          "value": "typeof(\"stock\".\"cantidad\") = 'integer'"
+        },
+        "stock_cantidad_no_negativa": {
+          "name": "stock_cantidad_no_negativa",
+          "value": "\"stock\".\"cantidad\" >= 0"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
