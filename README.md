@@ -71,6 +71,29 @@ argumentos con Zod antes de tocar la base. No existe un `query(sql)` genérico.
 
 ## Distribución
 
-Instalador NSIS para Windows x64, sin firmar (se distribuye con una guía de
-instalación). Se compila en GitHub Actions y se descarga como artefacto del
-workflow.
+Instalador NSIS para Windows x64, sin firmar. Se compila en GitHub Actions y
+se descarga como artefacto del workflow.
+
+La guía para quien lo instala es **[INSTALACION.md](INSTALACION.md)**.
+
+### Un detalle de NSIS que costó tiempo
+
+`nsis.language` **no** es el idioma de la interfaz del asistente. Se usa en
+un solo lugar, `computeVersionKey()` de electron-builder, como LANG de
+recursos de Windows para el plugin `VIAddVersionKey`, y espera un LANGID
+numérico. Con `language: es` makensis aborta con:
+
+```
+VIAddVersionKey: "/LANG=es" is not a valid language code!
+```
+
+Lo que hace falta son dos opciones distintas:
+
+| Opción | Qué controla | Valor |
+| --- | --- | --- |
+| `nsis.language` | LANG de recursos Windows (`VIAddVersionKey`) | `2058` (0x080A, es-AR) |
+| `nsis.installerLanguages` | idioma de la UI del asistente | `es_ES` → `SpanishInternational` |
+
+Ojo con `multiLanguageInstaller: false`: hace que `LangConfigurator` ponga
+`langs = ["en_US"]` e **ignore** `installerLanguages` por completo, así que
+el asistente salía en inglés.
