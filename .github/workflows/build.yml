@@ -51,6 +51,13 @@ jobs:
       - name: Compilar main / preload / renderer
         run: pnpm build
 
+      # En Tailwind v4 una clase inexistente no falla el build: simplemente no
+      # genera CSS. Un `rounded-pill` con el token eliminado, o un `w-18` mal
+      # calculado, se aplican en silencio y el defecto aparece en el maquete y
+      # no en la compilacion.
+      - name: Verificar clases del renderer
+        run: pnpm verificar:clases
+
       # better-sqlite3 13 usa prebuilds N-API: el mismo .node sirve para Node y
       # para Electron, asi que NO hace falta recompilar contra el ABI de
       # Electron ni tener MSVC para el modulo nativo.

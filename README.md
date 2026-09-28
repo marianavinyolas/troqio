@@ -35,14 +35,15 @@ Desinstalar la aplicación **no** borra la base de datos
 ## Comandos
 
 ```bash
-pnpm install          # instalar dependencias
-pnpm dev              # modo desarrollo (ventana + HMR)
-pnpm build            # compilar main / preload / renderer
-pnpm start            # previsualizar la compilación
-pnpm smoke            # verifica la base de datos e imprime JSON, sin ventana
-pnpm test             # tests unitarios
-pnpm typecheck        # TypeScript estricto
-pnpm lint             # Biome
+pnpm install            # instalar dependencias
+pnpm dev                # modo desarrollo (ventana + HMR)
+pnpm build              # compilar main / preload / renderer
+pnpm start              # previsualizar la compilación
+pnpm smoke              # verifica la base de datos e imprime JSON, sin ventana
+pnpm test               # tests unitarios
+pnpm typecheck          # TypeScript estricto
+pnpm lint               # Biome
+pnpm verificar:clases   # clases de Tailwind ausentes del CSS compilado
 ```
 
 ## Arquitectura
@@ -57,8 +58,28 @@ src/shared/    contrato IPC, esquemas Zod y tipos (lo usan main y renderer)
 El renderer **nunca** es de confianza: cada comando IPC revalida sus
 argumentos con Zod antes de tocar la base. No existe un `query(sql)` genérico.
 
+Dentro del renderer:
+
+```
+src/renderer/src/
+  rutas.ts        registro de destinos (datos puros, sin React)
+  iconos.ts       set de iconos SVG, tambien datos puros
+  cx.ts           une clases descartando pedazos vacios
+  componentes/    shell (riel, cabecera) y primitivas en componentes/ui/
+  pantallas/      una por destino
+  ganchos/        hooks con estado
+```
+
+`rutas.ts` e `iconos.ts` no importan React a propósito: eso permite
+verificarlos con `tests/rutas.test.ts` en entorno node, sin jsdom.
+
 ## Notas de la pila
 
+- **Tailwind v4** no falla cuando se usa una clase que no existe: simplemente
+  no genera CSS y la regla se aplica en silencio. Un `rounded-pill` con el
+  token eliminado, o un `w-18` mal calculado, se detectan recién mirando el
+  maquete. Por eso está `pnpm verificar:clases`, que extrae las clases usadas en
+  el renderer y falla si alguna no aparece en el CSS compilado.
 - **better-sqlite3 13** usa binarios precompilados N-API: el mismo `.node`
   sirve para Node y para Electron. No hace falta recompilar contra el ABI de
   Electron ni tener MSVC en la máquina de compilación.

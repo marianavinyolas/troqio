@@ -1,37 +1,99 @@
 @import "tailwindcss";
 
 /*
- * Tokens de tema - M0/M1.
- * Paleta suave, bordes sutiles, esquinas redondeadas, espaciado comodo.
+ * Tokens de tema.
+ *
+ * Todo el color, el radio y la sombra de la app salen de aca. Los componentes
+ * solo usan utilidades (`bg-surface`, `text-ink-muted`, `rounded-card`), asi que
+ * re-tematizar es cambiar este bloque y nada mas.
+ *
+ * Paleta en oklch: perceptualmente uniforme, asi que un paso de claridad se ve
+ * igual en todos los tonos. Colores suaves, bordes sutiles y esquinas
+ * redondeadas, como pide el requisito de UI.
  */
 @theme {
   --font-sans:
     "Inter var", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 
+  /* Superficies, de la mas profunda a la mas elevada. */
   --color-canvas: oklch(0.985 0.003 250);
   --color-surface: oklch(1 0 0);
+  --color-raised: oklch(0.973 0.004 250);
+
+  /* Bordes: `line` para separar, `line-strong` para el contorno de un control. */
   --color-line: oklch(0.925 0.005 250);
+  --color-line-strong: oklch(0.875 0.008 250);
+
+  /* Tinta. Tres pasos: contenido, secundario y terciario. */
   --color-ink: oklch(0.28 0.02 260);
-  --color-ink-muted: oklch(0.55 0.02 260);
+  --color-ink-muted: oklch(0.52 0.015 260);
+  --color-ink-subtle: oklch(0.66 0.012 260);
+  --color-on-brand: oklch(0.99 0.002 235);
+
+  /* Marca. */
   --color-brand: oklch(0.58 0.13 235);
+  --color-brand-strong: oklch(0.5 0.14 235);
   --color-brand-soft: oklch(0.96 0.02 235);
-  --color-ok: oklch(0.62 0.13 155);
-  --color-warn: oklch(0.68 0.14 65);
-  --color-danger: oklch(0.58 0.19 22);
+
+  /* Estados. Las variantes /5, /8 y /10 se arman con color-mix, asi que los
+     fondos suaves se derivan de estos mismos tokens. */
+  --color-ok: oklch(0.56 0.12 155);
+  --color-warn: oklch(0.6 0.13 65);
+  --color-danger: oklch(0.55 0.19 22);
 
   --radius-card: 0.875rem;
+  --radius-control: 0.625rem;
+
+  /* Sombras minimas: separan por borde, no por mancha. */
+  --shadow-card: 0 1px 2px oklch(0.28 0.02 260 / 0.05);
+  --shadow-raised: 0 8px 24px -8px oklch(0.28 0.02 260 / 0.14);
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
 
-body {
-  margin: 0;
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* App de escritorio, no pagina web: sin rebote de scroll ni arrastre de texto
+     accidental al seleccionar con el mouse. */
+  ::selection {
+    background: var(--color-brand-soft);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-line-strong);
+    /* El borde transparente hace que la barra parezca mas fina de lo que es. */
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-subtle);
+  }
 }

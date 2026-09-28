@@ -79,7 +79,9 @@ function createWindow(): BrowserWindow {
     minWidth: 900,
     minHeight: 600,
     show: false,
-    backgroundColor: '#f8fafc',
+    // Debe coincidir con --color-canvas de styles.css, o se ve un destello
+    // blanco entre el splash de Windows y el primer pintado del renderer.
+    backgroundColor: '#f9fafc',
     title: 'Troqio',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
