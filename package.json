@@ -10,7 +10,7 @@
     "build": "electron-vite build",
     "start": "electron-vite preview",
     "smoke": "electron . --smoke-test",
-    "package:win": "electron-builder --win --x64",
+    "package:win": "electron-builder --win --x64 --publish never",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "biome check .",
     "format": "biome format --write .",
