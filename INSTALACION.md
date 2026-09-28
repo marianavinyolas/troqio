@@ -2,13 +2,16 @@
 
 > ## Estado de esta versión
 >
-> Esta es la versión **0.1.0**, una build técnica del primer hito del
-> proyecto. **Todavía no tiene las funciones de la farmacia**: no se cargan
-> productos, no se buscan y no se descuenta stock. Sirve para comprobar que la
-> instalación, la base de datos y el acceso a los datos funcionan en una
-> Windows real.
+> Esta es la versión **0.1.0**. **Ya se puede cargar el catálogo y buscar**:
+> importás el archivo de productos, se editan a mano, y el filtro encuentra
+> por nombre, principio activo o código de barras.
 >
-> No cargues el inventario real en esta versión.
+> **Todavía no se cuenta el stock.** Todos los productos entran con stock 0 y
+> no hay forma de cargarlo todavía: el conteo llega en el próximo hito. Se
+> puede usar para cargar y revisar el catálogo, no para trabajar con las cajas
+> del estante.
+>
+> No borres la carpeta de datos: importás el catálogo una vez y ahí queda.
 
 ## Requisitos
 
@@ -147,6 +150,8 @@ Estás abriendo el instalador como administrador. Cerralo y abrilo con doble
 clic normal.
 
 **Instalé de nuevo y perdí los datos**
-No se pierden: revisá `%APPDATA%\troqio`. Si la app no muestra lo esperado,
-es un problema de la versión 0.1.0, que todavía no tiene las funciones de
-carga y búsqueda. No borres esa carpeta.
+No se pierden: quedan en `%APPDATA%\troqio`, fuera de la carpeta de
+programas, que es lo que hace que reinstalar no borre el catálogo. Si la app no
+muestra lo que esperás, revisá que estés entrando a la misma carpeta (con
+`%APPDATA%` apuntando al usuario con el que cargaste). Si sigue sin verse,
+probá importar el archivo otra vez: no duplica nada.

@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import Database from 'better-sqlite3'
 import { type BetterSQLite3Database, drizzle } from 'drizzle-orm/better-sqlite3'
 import { app } from 'electron'
+import { registrarFuncionesDeBusqueda } from './buscar'
 import { aplicarMigraciones } from './migrar'
 import { applyPragmas } from './pragmas'
 import * as schema from './schema'
@@ -28,6 +29,9 @@ function open(): Database.Database {
 
   const instance = new Database(getDbPath())
   applyPragmas(instance)
+  // Antes de la primera consulta: la búsqueda usa `fold()`, y sin registrarla
+  // el error es "no such function: fold" en el primer filtro.
+  registrarFuncionesDeBusqueda(instance)
   return instance
 }
 

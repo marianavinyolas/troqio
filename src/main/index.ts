@@ -6,6 +6,18 @@ import { registerIpc } from './ipc'
 const isDev = !app.isPackaged
 const isSmokeTest = process.argv.includes('--smoke-test')
 
+/**
+ * Obliga a aplicar la CSP aunque la app no esté empaquetada.
+ *
+ * El devserver de Vite necesita scripts inline y `eval`, así que en desarrollo
+ * la CSP no se puede aplicar. Pero si queda así, el arnés de interfaz corre
+ * sin ella, y el único mecanismo de seguridad de la app no se prueba nunca:
+ * ni en dev, ni en el arnés, ni en los tests. Con `TROQIO_CSP=1` se aplica
+ * igual —el arnés carga el bundle de producción, que no necesita inline— y la
+ * app se vuelve a ver exactamente como se va a ver en el instalador.
+ */
+const cspActiva = !isDev || process.env.TROQIO_CSP === '1'
+
 /** Ventana principal, para poder enfocarla si se relanza la app. */
 let ventanaPrincipal: BrowserWindow | null = null
 
@@ -19,7 +31,7 @@ let ventanaPrincipal: BrowserWindow | null = null
  *
  * 'unsafe-inline' solo en estilos: React usa estilos inline.
  */
-const CSP_PROD = [
+export const CSP_PROD = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
@@ -31,8 +43,16 @@ const CSP_PROD = [
   "frame-ancestors 'none'"
 ].join('; ')
 
-function applyContentSecurityPolicy(): void {
-  if (isDev) return
+/**
+ * Instala la CSP de la app empaquetada.
+ *
+ * Exportada para poder probarla: es lo único en toda la app que solo actúa en
+ * producción, así que sin un test es exactamente el código que nunca se
+ * ejecuta en ninguna corrida — ni en dev, ni en el arnés, ni en los tests de
+ * la base. Ver `tests/seguridad.test.ts`.
+ */
+export function applyContentSecurityPolicy(): void {
+  if (!cspActiva) return
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {

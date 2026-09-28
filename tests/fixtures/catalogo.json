@@ -1,0 +1,135 @@
+[
+  {
+    "nombre": "IBUPROFENO 400 mg comp.x 20",
+    "droga": "IBUPROFENO",
+    "toquel": "9950001",
+    "barcode": "7791234567898",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "CLORURO DE SODIO 20% amp.x 5",
+    "droga": "SODIO,CLORURO",
+    "toquel": "9950002",
+    "barcode": "7791234567904",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "ACETILCISTEÍNA 200 mg",
+    "droga": "ACETILCISTEÍNA",
+    "toquel": "9950003",
+    "barcode": "7791234567911",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "CÓDIGO CON CEROS INICIALES",
+    "droga": "PRUEBA",
+    "toquel": "9950004",
+    "barcode": "0070942507240",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "FORMATO UPC-A DE 12 DIGITOS",
+    "droga": "PRUEBA",
+    "toquel": "9950005",
+    "barcode": "650240011351",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "FORMATO EAN-8 DE 8 DIGITOS",
+    "droga": "PRUEBA",
+    "toquel": "9950006",
+    "barcode": "77908384",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "DUPLICADO DEL SEGUNDO REGISTRO",
+    "droga": "SODIO,CLORURO",
+    "toquel": "9950009",
+    "barcode": "7791234567904",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "SIN NUMERO DE TROQUEL",
+    "droga": "PRUEBA",
+    "barcode": "7791234567928",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "TROQUEL CON LA GRAFIA CORRECTA",
+    "droga": "PRUEBA",
+    "troquel": "9950010",
+    "barcode": "7791234567935",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  "ESTE REGISTRO ES UN TEXTO, NO UN OBJETO",
+  {
+    "droga": "PRUEBA",
+    "toquel": "9950012",
+    "barcode": "7791234567942",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "SIN CODIGO DE BARRAS",
+    "droga": "PRUEBA",
+    "toquel": "9950013",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "CODIGO CON LETRAS",
+    "droga": "PRUEBA",
+    "toquel": "9950014",
+    "barcode": "779ABC",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "CODIGO DEMASIADO CORTO",
+    "droga": "PRUEBA",
+    "toquel": "9950015",
+    "barcode": "123",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "CHECKSUM INVALIDO",
+    "droga": "PRUEBA",
+    "toquel": "9950016",
+    "barcode": "7791234567950",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  },
+  {
+    "nombre": "LARGO PERO NO ES UN FORMATO REAL",
+    "droga": "PRUEBA",
+    "toquel": "9950017",
+    "barcode": "123456789",
+    "units": 0,
+    "createdAt": "2026-06-26T21:44:41Z",
+    "updatedAt": "2026-06-26T21:44:41Z"
+  }
+]

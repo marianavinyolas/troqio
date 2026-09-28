@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "biome check .",
     "verificar:clases": "node tools/verificar-clases.mjs",
+    "verificar:interfaz": "electron tools/arnes-ui.cjs",
     "format": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",

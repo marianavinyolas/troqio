@@ -43,7 +43,7 @@ export const RUTAS: readonly Ruta[] = [
     descripcion: 'Alta, edición e importación de productos y sus códigos.',
     icono: 'caja',
     hito: 'M3',
-    disponible: false
+    disponible: true
   },
   {
     id: 'conteo',

@@ -1,6 +1,7 @@
 import { BarraSuperior } from '@renderer/componentes/BarraSuperior'
 import { Navegacion } from '@renderer/componentes/Navegacion'
 import { type ResultadoDiagnostico, useDiagnostico } from '@renderer/ganchos/useDiagnostico'
+import { Catalogo } from '@renderer/pantallas/Catalogo'
 import { Diagnostico } from '@renderer/pantallas/Diagnostico'
 import { Estilos } from '@renderer/pantallas/Estilos'
 import { Proximamente } from '@renderer/pantallas/Proximamente'
@@ -44,6 +45,8 @@ export default function App() {
  */
 function pantalla(rutaId: IdRuta, diag: ResultadoDiagnostico) {
   switch (rutaId) {
+    case 'catalogo':
+      return <Catalogo />
     case 'diagnostico':
       return <Diagnostico {...diag} />
     case 'estilos':

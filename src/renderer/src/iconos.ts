@@ -24,7 +24,12 @@ export const NOMBRES_ICONO = [
   'mas',
   'chevron-derecha',
   'deshacer',
-  'atras'
+  'atras',
+  // Del hito 3: alta, edición, baja e importación.
+  'lapiz',
+  'basura',
+  'subir',
+  'salir'
 ] as const
 
 export type NombreIcono = (typeof NOMBRES_ICONO)[number]
@@ -73,7 +78,29 @@ export const TRAZOS: Record<NombreIcono, Trazo[]> = {
   mas: [{ d: 'M5 12h14' }, { d: 'M12 5v14' }],
   'chevron-derecha': [{ d: 'm9 18 6-6-6-6' }],
   deshacer: [{ d: 'M3 7v6h6' }, { d: 'M21 17a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.3 2.6L3 13' }],
-  atras: [{ d: 'M19 12H5' }, { d: 'm12 19-7-7 7-7' }]
+  atras: [{ d: 'M19 12H5' }, { d: 'm12 19-7-7 7-7' }],
+  // Lápiz: el cuerpo y la punta, con la línea de la base para separar el
+  // borrador del grafito. Sin el detalle, a 16 px se confunde con una coma.
+  lapiz: [{ d: 'M12 20h9' }, { d: 'M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z' }],
+  basura: [
+    { d: 'M3 6h18' },
+    { d: 'M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2' },
+    { d: 'M19 6v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6' },
+    { d: 'M10 11v6' },
+    { d: 'M14 11v6' }
+  ],
+  // Flecha entrando en una bandeja: importar un archivo.
+  subir: [
+    { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' },
+    { d: 'M12 3v13' },
+    { d: 'm7 8 5-5 5 5' }
+  ],
+  // Puerta de salida: volver del formulario o de la importación al listado.
+  salir: [
+    { d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4' },
+    { d: 'm16 17 5-5-5-5' },
+    { d: 'M21 12H9' }
+  ]
 }
 
 /** Clave estable por primitiva, para no usar el indice del array como key. */

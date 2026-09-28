@@ -23,9 +23,17 @@ describe('registro de rutas', () => {
     expect(inicial.disponible).toBe(true)
   })
 
-  it('el hito 1 habilita solo Diagnostico y Estilos', () => {
+  it('habilita exactamente las pantallas que ya están construidas', () => {
+    // La lista se actualiza a mano en cada hito que entrega una pantalla, y
+    // este test es lo que falla si alguien marca `disponible: true` sin
+    // construirla, o al revés.
     const habilitadas = RUTAS.filter(r => r.disponible).map(r => r.id)
-    expect(habilitadas).toEqual(['diagnostico', 'estilos'])
+    expect(habilitadas).toEqual(['catalogo', 'diagnostico', 'estilos'])
+  })
+
+  it('cada pantalla habilitada tiene su hito acotado a lo entregado', () => {
+    // El Catálogo es la primera pantalla de producto: llega en M3.
+    expect(obtenerRuta('catalogo').hito).toBe('M3')
   })
 
   it('Estilos es la referencia del sistema de diseño', () => {
