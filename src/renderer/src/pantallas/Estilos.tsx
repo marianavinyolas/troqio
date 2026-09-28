@@ -112,6 +112,16 @@ export function Estilos() {
             />
             <Campo etiqueta="Con error" error="Este código de barras ya está cargado" />
             <Campo
+              etiqueta="Con acción"
+              placeholder="Slot a la derecha del texto"
+              defaultValue="ibuprofeno"
+              accion={
+                <Boton variante="fantasma" tamano="sm" aria-label="Quitar" className="size-7 px-0">
+                  <Icono nombre="atras" className="size-3.5" />
+                </Boton>
+              }
+            />
+            <Campo
               etiquetaOculta
               etiqueta="Solo para lectores de pantalla"
               placeholder=" invisible"

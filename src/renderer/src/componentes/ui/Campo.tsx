@@ -64,7 +64,10 @@ export function Campo({
           className={cx(
             'h-10 w-full min-w-0 rounded-control border bg-surface text-sm text-ink placeholder:text-ink-subtle',
             'focus-visible:ring-brand/40 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:outline-none',
-            icono && 'pl-10',
+            // El padding izquierdo por defecto no puede faltar: el preflight de
+            // Tailwind no pone padding en los input, y sin esto el texto queda
+            // pegado al borde.
+            icono ? 'pl-10' : 'pl-3',
             hayAccion ? 'pr-10' : 'pr-3',
             error
               ? 'border-danger/50 focus-visible:ring-danger/30'
