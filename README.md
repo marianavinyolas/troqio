@@ -15,8 +15,19 @@ carpeta de datos de usuario:
 
 En Windows se abre con: `%APPDATA%` en la barra de direcciones del Explorador.
 
-> **Respaldo:** copiá ese archivo a un pendrive. Los respaldos locales en la
-> misma máquina **no** protegen contra una falla de disco.
+> **Respaldo: cerrá Troqio antes de copiar.** La base usa WAL
+> (`journal_mode = WAL`), así que con la aplicación abierta los cambios
+> recientes están en `troqio.db-wal`, no en `troqio.db`. Copiar solo
+> `troqio.db` con la app corriendo produce un archivo **sin ninguna tabla**
+> (verificado: `no such table`). Al cerrar bien, SQLite vuelca el WAL dentro de
+> `troqio.db` y borra los archivos `-wal`/`-shm`: copiando solo `troqio.db`
+> con la app cerrada el respaldo queda completo.
+>
+> Si no podés cerrar la app, copiá los tres archivos juntos: `troqio.db`,
+> `troqio.db-wal` y `troqio.db-shm`.
+
+Los respaldos locales en la misma máquina **no** protegen contra una falla de
+disco. Copiá a un pendrive.
 
 Desinstalar la aplicación **no** borra la base de datos
 (`deleteAppDataOnUninstall: false` en `electron-builder.yml`).
